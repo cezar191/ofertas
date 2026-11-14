@@ -472,30 +472,17 @@
     var total = items.reduce(function (s, x) { return s + x.p.price; }, 0);
     $("bagTotal").textContent = money(total);
 
-    var min = state.data.delivery.min_pieces || 2, area = state.data.delivery.area || "";
-    var ok = n >= min;
-    var dv = $("bagDelivery");
-    dv.className = "bag-delivery" + (ok ? " ok" : "");
-    dv.textContent = ok
-      ? "✓ Puedes recibir tu pedido en " + area + "."
-      : (n === 0 ? "Entrega en " + area + " a partir de " + min + " prendas. No hacemos envíos."
-        : "Agrega " + (min - n) + " prenda" + (min - n > 1 ? "s" : "") + " más para entrega en " + area + ", o recógela en tienda.");
-    var dom = document.querySelector('input[name="entrega"][value="domicilio"]');
-    dom.disabled = !ok;
-    $("optDomicilio").classList.toggle("disabled", !ok);
-    if (!ok && dom.checked) document.querySelector('input[name="entrega"][value="tienda"]').checked = true;
-
     updateBagWa(items, total);
   }
 
   function updateBagWa(items, total) {
     var a = $("bagSend");
     if (!items.length) { a.removeAttribute("href"); a.setAttribute("aria-disabled", "true"); a.style.opacity = ".5"; return; }
-    var entrega = document.querySelector('input[name="entrega"]:checked').value;
+    // Solo tienda física: no hay opción de entrega a domicilio.
     var msg = "¡Hola! Quiero apartar estas prendas:\n" +
       items.map(function (x) { return itemLine(x.p, x.i.size); }).join("\n") +
       "\n\nTotal: " + money(total) +
-      "\nEntrega: " + (entrega === "domicilio" ? "en " + state.data.delivery.area + " (mi dirección es: )" : "recojo en tienda");
+      "\nLas recojo en tienda.";
     var link = waLink(msg);
     if (link) { a.href = link; a.removeAttribute("aria-disabled"); a.style.opacity = ""; }
   }
@@ -505,6 +492,5 @@
     state.bag.splice(+b.getAttribute("data-idx"), 1);
     saveBag(); renderBag();
   });
-  document.querySelectorAll('input[name="entrega"]').forEach(function (r) { r.addEventListener("change", renderBag); });
   $("openBag").addEventListener("click", function () { renderBag(); $("bagDrawer").showModal(); });
 })();

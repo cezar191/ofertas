@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Buen Fin · Ofertas en tienda</title>
-  <meta name="description" content="Ofertas de El Buen Fin en prendas disponibles hoy. Aparta por WhatsApp y recoge en tienda, o recibe en Calera de Víctor Rosales a partir de 2 prendas.">
+  <meta name="description" content="Ofertas de El Buen Fin en prendas disponibles hoy. Aparta por WhatsApp y recoge en tienda.">
   <meta name="theme-color" content="#141414">
 
   <!-- Vista previa al compartir en WhatsApp / Facebook / Instagram. Los rastreadores de las redes
@@ -13,7 +13,7 @@
   <meta property="og:url" content="https://cezar191.github.io/ofertas/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="El Buen Fin · Ofertas en tienda">
-  <meta property="og:description" content="Mira las prendas disponibles y sus ofertas. Pide por WhatsApp. Sin envíos: entrega en tienda o en Calera desde 2 prendas.">
+  <meta property="og:description" content="Mira las prendas disponibles y sus ofertas. Aparta por WhatsApp y recoge en tienda.">
   <meta property="og:image" content="https://cezar191.github.io/ofertas/assets/og.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -81,15 +81,15 @@
     <section class="perks wrap" aria-label="Cómo comprar">
       <div class="perk">
         <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-store"/></svg>
-        <div><b>Sin envíos</b><span>Entrega en tienda</span></div>
-      </div>
-      <div class="perk">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pin"/></svg>
-        <div><b>Entrega en <span data-bind="delivery.area">Calera</span></b><span>a partir de <span data-bind="delivery.min_pieces">2</span> prendas</span></div>
+        <div><b>Solo en tienda física</b><span>Sin envíos ni entregas a domicilio</span></div>
       </div>
       <div class="perk">
         <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wa"/></svg>
         <div><b>Aparta por WhatsApp</b><span>Elige talla y mándanos mensaje</span></div>
+      </div>
+      <div class="perk">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pin"/></svg>
+        <div><b>Recoge en tienda</b><span data-bind="store.hours">Te esperamos</span></div>
       </div>
     </section>
 
@@ -145,9 +145,9 @@
         <ol class="steps">
           <li><b>Elige</b><span>Toca la prenda y escoge tu talla.</span></li>
           <li><b>Escríbenos</b><span>Mándanos tu bolsa por WhatsApp. Te confirmamos existencia.</span></li>
-          <li><b>Recoge</b><span>En tienda, o te la llevamos en <span data-bind="delivery.area">Calera</span> si son <span data-bind="delivery.min_pieces">2</span> prendas o más.</span></li>
+          <li><b>Recoge</b><span>Pasa por tus prendas a la tienda.</span></li>
         </ol>
-        <p class="fine">No hacemos envíos por paquetería. Precios y existencias se actualizan durante el día; la prenda se aparta cuando te confirmamos por WhatsApp.</p>
+        <p class="fine">Venta solo en tienda física: no hacemos envíos ni entregas a domicilio. Precios y existencias se actualizan durante el día; la prenda se aparta cuando te confirmamos por WhatsApp.</p>
       </div>
     </section>
   </main>
@@ -206,10 +206,8 @@
       </div>
       <div class="bag-items" id="bagItems"></div>
       <div class="bag-foot">
-        <div class="bag-delivery" id="bagDelivery"></div>
         <div class="bag-total"><span>Total</span><b id="bagTotal">$0</b></div>
-        <label class="bag-option"><input type="radio" name="entrega" value="tienda" checked> Recojo en tienda</label>
-        <label class="bag-option" id="optDomicilio"><input type="radio" name="entrega" value="domicilio"> Entrega en <span data-bind="delivery.area">Calera</span></label>
+        <div class="bag-delivery ok">Recoges tus prendas en tienda. No hacemos envíos.</div>
         <a class="btn btn-wa btn-block" id="bagSend" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wa"/></svg> Enviar pedido por WhatsApp
         </a>
