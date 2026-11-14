@@ -6,6 +6,9 @@
   <title>Buen Fin · Ofertas en tienda</title>
   <meta name="description" content="Ofertas de El Buen Fin en prendas disponibles hoy. Aparta por WhatsApp y recoge en tienda.">
   <meta name="theme-color" content="#141414">
+  <!-- ID de medición de Google Analytics 4 (empieza con G-). Vacío = sin estadísticas.
+       Es público por diseño: cualquier página con GA lo trae visible. Ver Deploy/LANDING.md. -->
+  <meta name="ga-id" content="G-S1R8T8JBVH">
 
   <!-- Vista previa al compartir en WhatsApp / Facebook / Instagram. Los rastreadores de las redes
        NO ejecutan JavaScript, así que esto tiene que ir escrito aquí, no generado por app.js.
@@ -25,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="preload" href="data/catalogo.json" as="fetch" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=2">
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
   <a class="skip" href="#catalogo">Ir al catálogo</a>
@@ -162,6 +165,7 @@
       </div>
       <div class="socials" id="socials"></div>
       <p class="updated" id="updated"></p>
+      <p class="updated" id="analyticsNote" hidden>Usamos Google Analytics para contar visitas de forma anónima y saber qué prendas les gustan más. No pedimos ni guardamos tus datos.</p>
     </div>
   </footer>
 
@@ -234,6 +238,6 @@
     <symbol id="i-tt" viewBox="0 0 24 24"><path fill="currentColor" d="M16 3c.3 2.2 1.6 3.6 4 3.8v3.4a7.3 7.3 0 0 1-4-1.2v6.3A6.3 6.3 0 1 1 9.7 9v3.5a2.8 2.8 0 1 0 2.8 2.8V3H16Z"/></symbol>
   </svg>
 
-  <script src="app.js?v=2" defer></script>
+  <script src="app.js?v=3" defer></script>
 </body>
 </html>

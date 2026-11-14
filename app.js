@@ -76,6 +76,38 @@
     return location.origin + location.pathname + (code ? "#p=" + encodeURIComponent(code) : "");
   }
 
+  // ---------------------------------------------------------------- estadísticas (GA4)
+  // El ID vive en <meta name="ga-id"> de index.html. Vacío = no se carga nada.
+  // En localhost tampoco: las pruebas no deben inflar las visitas reales. Para ver los eventos al
+  // probar, se registran en la consola con ?debug=1.
+  var GA_ID = (document.querySelector('meta[name="ga-id"]') || {}).content || "";
+  var isLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  var debug = /[?&]debug=1/.test(location.search);
+  if (GA_ID && !isLocal) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag("js", new Date());
+    window.gtag("config", GA_ID, { currency: "MXN" });
+    var s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(GA_ID);
+    document.head.appendChild(s);
+    $("analyticsNote").hidden = false;
+  }
+  function track(name, params) {
+    if (debug) console.log("[GA]", name, params || {});
+    if (window.gtag && GA_ID && !isLocal) window.gtag("event", name, params || {});
+  }
+  // Nombres de evento del comercio electrónico de GA4 (view_item, add_to_cart...): así los reportes
+  // de "Productos" de Google se llenan solos, sin configurar nada allá. item_id = CÓDIGO DE BARRAS,
+  // el mismo con el que la dueña busca la prenda en el PDV.
+  function gaItem(p, size) {
+    var it = { item_id: p.code, item_name: p.name.slice(0, 100), item_category: p.type, price: p.price, quantity: 1 };
+    if (size) it.item_variant = size;
+    if (p.offer) it.discount = p.regular_price ? +(p.regular_price - p.price).toFixed(2) : 0;
+    return it;
+  }
+
   // ---------------------------------------------------------------- carga
   // ?v= evita que el navegador muestre un JSON viejo de su caché.
   fetch("data/catalogo.json?v=" + Math.floor(Date.now() / 60000), { cache: "no-cache" })
@@ -227,6 +259,7 @@
     state.type = b.getAttribute("data-type");
     $("types").querySelectorAll(".chip").forEach(function (x) { x.classList.toggle("on", x === b); });
     apply();
+    if (state.type) track("select_content", { content_type: "tipo", item_id: state.type });
   });
 
   function buildSizes() {
@@ -243,10 +276,16 @@
       codes.map(function (c) { return '<option value="' + esc(c) + '">Talla ' + esc(c) + "</option>"; }).join("");
   }
 
-  var qTimer;
+  var qTimer, gaQTimer;
   $("q").addEventListener("input", function () {
     clearTimeout(qTimer);
     qTimer = setTimeout(function () { state.q = norm($("q").value.trim()); apply(); }, 180);
+    // La búsqueda se reporta cuando la clienta deja de escribir, no por cada letra.
+    clearTimeout(gaQTimer);
+    gaQTimer = setTimeout(function () {
+      var term = $("q").value.trim();
+      if (term.length >= 3) track("search", { search_term: term.slice(0, 60), results: state.filtered.length });
+    }, 1500);
   });
   $("size").addEventListener("change", function () { state.size = this.value; apply(); });
   $("sort").addEventListener("change", function () { state.sort = this.value; apply(); });
@@ -254,6 +293,7 @@
     state.onlyOffers = !state.onlyOffers;
     this.setAttribute("aria-pressed", state.onlyOffers);
     apply();
+    if (state.onlyOffers) track("select_content", { content_type: "filtro", item_id: "solo_ofertas" });
   });
   $("ctaOffers").addEventListener("click", function () {
     if (state.products.some(function (p) { return p.offer; }) && !state.onlyOffers) $("onlyOffers").click();
@@ -376,6 +416,7 @@
 
     var sheet = $("productSheet");
     if (!sheet.open) sheet.showModal();
+    track("view_item", { currency: "MXN", value: p.price, items: [gaItem(p)], from_link: !!fromHash });
     if (!fromHash) history.replaceState(null, "", "#p=" + encodeURIComponent(p.code));
   }
 
@@ -418,6 +459,7 @@
     if (exists) { toast("Ya está en tu bolsa"); return; }
     state.bag.push({ code: p.code, size: size });
     saveBag(); renderBag();
+    track("add_to_cart", { currency: "MXN", value: p.price, items: [gaItem(p, size)] });
 
     // Confirmación en tres tiempos, para que no pase desapercibida en el celular:
     // 1) el botón se pone verde con palomita, 2) se cierra la ficha y la bolsa de arriba "brinca",
@@ -439,7 +481,8 @@
 
   $("pShare").addEventListener("click", function () {
     var p = state.current, url = pageUrl(p.code);
-    var text = p.name + " — " + money(p.price) + (p.regular_price ? " (antes " + money(p.regular_price) + ")" : "");
+    track("share", { method: navigator.share ? "nativo" : "copiar_enlace", content_type: "prenda", item_id: p.code });
+    var text =p.name + " — " + money(p.price) + (p.regular_price ? " (antes " + money(p.regular_price) + ")" : "");
     if (navigator.share) {
       navigator.share({ title: state.data.store.name || "", text: text, url: url }).catch(function () {});
     } else if (navigator.clipboard) {
@@ -518,6 +561,8 @@
     var b = e.target.closest(".bag-remove"); if (!b) return;
     var row = b.closest(".bag-item");
     var idx = +b.getAttribute("data-idx");
+    var quitada = state.bag[idx] && findByCode(state.bag[idx].code);
+    if (quitada) track("remove_from_cart", { currency: "MXN", value: quitada.price, items: [gaItem(quitada, state.bag[idx].size)] });
     // La fila se desliza hacia afuera antes de desaparecer: que se VEA que sí se quitó.
     row.classList.add("leaving");
     setTimeout(function () {
@@ -532,4 +577,25 @@
     toast("Bolsa vacía");
   });
   $("openBag").addEventListener("click", function () { renderBag(); $("bagDrawer").showModal(); });
+
+  // ---------------------------------------------------------------- eventos de contacto
+  // Lo que más importa medir: cuántas visitas terminan en un WhatsApp. Los enlaces abren en otra
+  // pestaña/app, así que la página sigue viva para mandar el evento.
+  $("bagSend").addEventListener("click", function () {
+    if (!this.getAttribute("href")) return;
+    var items = state.bag.map(function (i) { var p = findByCode(i.code); return p ? gaItem(p, i.size) : null; }).filter(Boolean);
+    var total = items.reduce(function (s, it) { return s + it.price; }, 0);
+    // generate_lead = "se convirtió en prospecto": GA4 lo propone como conversión clave.
+    track("generate_lead", { currency: "MXN", value: total, lead_source: "bolsa", items: items });
+  });
+  $("pWa").addEventListener("click", function () {
+    var p = state.current; if (!p) return;
+    track("generate_lead", { currency: "MXN", value: p.price, lead_source: "prenda", items: [gaItem(p, state.currentSize)] });
+  });
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest("[data-wa-general]");
+    if (a) track("contact", { method: "whatsapp", location: a.classList.contains("fab") ? "flotante" : (a.closest(".topbar") ? "barra" : "portada") });
+    var social = e.target.closest("#socials a, #mapsLink");
+    if (social) track("click_social", { network: social.id === "mapsLink" ? "maps" : social.getAttribute("aria-label") });
+  });
 })();
