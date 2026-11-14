@@ -122,8 +122,17 @@
     state.data = data;
     var now = Date.now();
 
+    // Categorías/tipos que no se anuncian (dulces, bolsas de regalo...): ver <meta name="ocultar-*">.
+    function lista(name) {
+      var m = document.querySelector('meta[name="' + name + '"]');
+      return (m && m.content ? m.content.split(";") : []).map(function (s) { return norm(s.trim()); }).filter(Boolean);
+    }
+    var ocultarCat = lista("ocultar-categorias"), ocultarTipo = lista("ocultar-tipos");
+
     // Una oferta vencida desde la última publicación se muestra a precio normal.
-    state.products = (data.products || []).map(function (p) {
+    state.products = (data.products || []).filter(function (p) {
+      return ocultarCat.indexOf(norm(p.category)) < 0 && ocultarTipo.indexOf(norm(p.type)) < 0;
+    }).map(function (p) {
       if (p.offer && p.offer_ends_at && Date.parse(p.offer_ends_at) <= now && p.regular_price) {
         p = Object.assign({}, p, { price: p.regular_price, regular_price: null, offer: null, offer_ends_at: null });
       }
@@ -146,8 +155,9 @@
     $("loading").hidden = true;
 
     var gen = new Date(data.generated_at);
+    // Sin punto final: la hora en es-MX ya termina en "p.m." y salía "p.m..".
     $("updated").textContent = "Existencias actualizadas: " +
-      gen.toLocaleString("es-MX", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) + ".";
+      gen.toLocaleString("es-MX", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
     document.title = (data.campaign.title || "Ofertas") + " · " + (data.store.name || "");
   }
 
@@ -354,7 +364,9 @@
     if (p.offer === "clearance") b += '<span class="badge badge-clear">Liquidación</span>';
     else if (p.offer === "discount" && p._pct < 5) b += '<span class="badge badge-off">Oferta</span>';
     if (p.is_new) b += '<span class="badge badge-new">Nuevo</span>';
-    if (p.stock === 1) b += '<span class="badge badge-last">Última pieza</span>';
+    // Sin "Última pieza" en la tarjeta: casi toda la mercancía viene de a una pieza (78% del
+    // catálogo), así que el aviso salía en todo y dejaba de decir algo. La marca "última" sigue
+    // en el selector de talla de la ficha, que es donde sí orienta.
     return b;
   }
   function card(p) {

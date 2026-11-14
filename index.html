@@ -9,6 +9,11 @@
   <!-- ID de medición de Google Analytics 4 (empieza con G-). Vacío = sin estadísticas.
        Es público por diseño: cualquier página con GA lo trae visible. Ver Deploy/LANDING.md. -->
   <meta name="ga-id" content="G-S1R8T8JBVH">
+  <!-- Lo que NO se anuncia en la página aunque haya existencia (se vende en mostrador, no por aquí).
+       Nombres separados por punto y coma, tal como están en el catálogo de la app; no importan
+       mayúsculas ni acentos. Categoría = c_product_category; tipo = c_product_type. -->
+  <meta name="ocultar-categorias" content="DULCERIA">
+  <meta name="ocultar-tipos" content="Bolsas de Regalo">
 
   <!-- Vista previa al compartir en WhatsApp / Facebook / Instagram. Los rastreadores de las redes
        NO ejecutan JavaScript, así que esto tiene que ir escrito aquí, no generado por app.js.
@@ -27,8 +32,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="preload" href="data/catalogo.json" as="fetch" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
   <a class="skip" href="#catalogo">Ir al catálogo</a>
@@ -238,6 +242,6 @@
     <symbol id="i-tt" viewBox="0 0 24 24"><path fill="currentColor" d="M16 3c.3 2.2 1.6 3.6 4 3.8v3.4a7.3 7.3 0 0 1-4-1.2v6.3A6.3 6.3 0 1 1 9.7 9v3.5a2.8 2.8 0 1 0 2.8 2.8V3H16Z"/></symbol>
   </svg>
 
-  <script src="app.js?v=3" defer></script>
+  <script src="app.js?v=4" defer></script>
 </body>
 </html>
