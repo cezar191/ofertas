@@ -50,12 +50,22 @@
   function get(obj, path) {
     return path.split(".").reduce(function (o, k) { return o == null ? o : o[k]; }, obj);
   }
-  function toast(msg) {
+  function toast(msg, actionLabel, action) {
     var t = $("toast");
-    t.textContent = msg;
-    t.hidden = false;
+    // Palomita solo en los avisos de éxito (los que traen acción); "Elige tu talla" no la lleva.
+    t.innerHTML = (actionLabel ? '<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>' : "") + "<span></span>";
+    t.querySelector("span").textContent = msg;
+    if (actionLabel) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = actionLabel;
+      b.onclick = function () { t.hidden = true; action(); };
+      t.appendChild(b);
+    }
+    // Reiniciar la animación de entrada aunque el aviso anterior siga visible.
+    t.hidden = true; void t.offsetWidth; t.hidden = false;
     clearTimeout(toast._t);
-    toast._t = setTimeout(function () { t.hidden = true; }, 2200);
+    toast._t = setTimeout(function () { t.hidden = true; }, actionLabel ? 3500 : 2200);
   }
   function waLink(text) {
     var n = state.data && state.data.store.whatsapp;
@@ -408,8 +418,23 @@
     if (exists) { toast("Ya está en tu bolsa"); return; }
     state.bag.push({ code: p.code, size: size });
     saveBag(); renderBag();
-    toast("Agregada a tu bolsa");
-    $("productSheet").close();
+
+    // Confirmación en tres tiempos, para que no pase desapercibida en el celular:
+    // 1) el botón se pone verde con palomita, 2) se cierra la ficha y la bolsa de arriba "brinca",
+    // 3) aparece un aviso con acceso directo a la bolsa.
+    var btn = $("pAdd");
+    btn.classList.add("added");
+    btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg> ¡Agregada!';
+    setTimeout(function () {
+      $("productSheet").close();
+      btn.classList.remove("added");
+      btn.textContent = "Agregar a mi bolsa";
+      var bag = $("openBag");
+      bag.classList.remove("bump"); void bag.offsetWidth; bag.classList.add("bump");
+      toast("Agregada a tu bolsa · " + state.bag.length + (state.bag.length === 1 ? " prenda" : " prendas"), "Ver bolsa", function () {
+        renderBag(); $("bagDrawer").showModal();
+      });
+    }, 650);
   });
 
   $("pShare").addEventListener("click", function () {
@@ -456,6 +481,7 @@
     var n = items.length;
     $("bagCount").hidden = n === 0;
     $("bagCount").textContent = n;
+    $("bagClear").hidden = n === 0;
 
     if (!n) {
       $("bagItems").innerHTML = '<p class="bag-empty">Tu bolsa está vacía.<br>Toca una prenda para agregarla.</p>';
@@ -465,7 +491,8 @@
           '<div><p class="bi-name" title="' + esc(x.p.name) + '">' + esc(x.p.name) + "</p>" +
           '<p class="bi-meta">Código ' + esc(x.p.code) + (x.i.size ? " · Talla " + esc(x.i.size) : "") + "</p>" +
           '<p class="bi-price">' + money(x.p.price) + "</p></div>" +
-          '<button type="button" class="bag-remove" data-idx="' + idx + '" aria-label="Quitar">×</button></div>';
+          '<button type="button" class="bag-remove" data-idx="' + idx + '" aria-label="Quitar ' + esc(x.p.name) + '">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-trash"/></svg><span>Quitar</span></button></div>';
       }).join("");
     }
 
@@ -489,8 +516,20 @@
 
   $("bagItems").addEventListener("click", function (e) {
     var b = e.target.closest(".bag-remove"); if (!b) return;
-    state.bag.splice(+b.getAttribute("data-idx"), 1);
+    var row = b.closest(".bag-item");
+    var idx = +b.getAttribute("data-idx");
+    // La fila se desliza hacia afuera antes de desaparecer: que se VEA que sí se quitó.
+    row.classList.add("leaving");
+    setTimeout(function () {
+      state.bag.splice(idx, 1);
+      saveBag(); renderBag();
+    }, 220);
+  });
+  $("bagClear").addEventListener("click", function () {
+    if (!confirm("¿Quitar todas las prendas de tu bolsa?")) return;
+    state.bag = [];
     saveBag(); renderBag();
+    toast("Bolsa vacía");
   });
   $("openBag").addEventListener("click", function () { renderBag(); $("bagDrawer").showModal(); });
 })();
